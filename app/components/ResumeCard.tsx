@@ -1,12 +1,31 @@
 import React from "react";
 import { Link } from "react-router";
 import ScoreCircle from "./ScoreCircle";
+import { useEffect, useState } from "react";
+import { usePuterStore } from "~/lib/puter";
 
 const ResumeCard = ({
-  resume: { id, companyName, jobTitle, feedback , imagePath},
+  resume: { id, companyName, jobTitle, feedback, imagePath },
 }: {
   resume: Resume;
 }) => {
+
+  const {auth, fs} = usePuterStore()
+  
+  const [resumeUrl , setResumeUrl] = useState('')
+
+
+  useEffect(() => {
+    const loadResume = async () => {
+      const blob = await fs.read(imagePath);
+      if (!blob) return;
+      let url = URL.createObjectURL(blob);
+      setResumeUrl(url);
+    };
+
+    loadResume();
+  }, [imagePath]);
+
   return (
     <Link
       className="resume-card animate-in fade-in duration-1000 mb-12"
@@ -14,25 +33,23 @@ const ResumeCard = ({
     >
       <div className="resume-header">
         <div className="flex flex-col gap-2">
-          <h2 className="!text-black font-bold break-words">{companyName}</h2>
-
-          <h3 className="text-lg break-words text-gray-500">{jobTitle}</h3>
-        </div>
-
+      { companyName && <h2 className="!text-black font-bold break-words">{companyName}</h2>}
+      {  jobTitle  && <h3 className="text-lg break-words text-gray-500">{jobTitle}</h3>}        </div>
+      {!companyName && !jobTitle && <h2 className="text-black font-bold"></h2>}
         <div className="flex-shrink-0">
           <ScoreCircle score={feedback.overallScore} />
         </div>
       </div>
 
-      <div className="gradient-border animate-in fade-in duration-1000">
+      {resumeUrl && <div className="gradient-border animate-in fade-in duration-1000">
         <div className="w-full h-full">
           <img
-            src={imagePath}
+            src={resumeUrl}
             alt="resume"
             className="w-full h-[350px] max-sm:h-[200px] object-cover object-top"
           />
         </div>
-      </div>
+      </div>}
     </Link>
   );
 };
